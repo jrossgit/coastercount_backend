@@ -1,11 +1,28 @@
 version: '3.7'
 
 services:
+  db:
+    image: postgres:12.6-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $SQL_USER -d $SQL_DATABASE"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+    environment:
+      - POSTGRES_USER=$SQL_USER
+      - POSTGRES_PASSWORD=$SQL_PASSWORD
+      - POSTGRES_DB=$SQL_DATABASE
+
   web:
     build: ./backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: "python manage.py runserver 0.0.0.0:8000"
     depends_on:
       - db
+      - rabbitmq
     ports:
       - 8000:8000
     environment:
@@ -13,22 +30,28 @@ services:
       - DEBUG=1
       - SECRET_KEY=foo
       - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+      - RABBITMQ_MGMT_USERNAME=guest
+      - RABBITMQ_MGMT_PASSWORD=guest
+      - RABBITMQ_MGMT_URL=rabbitmq:15672
       - SQL_ENGINE=django.db.backends.postgresql
-      - SQL_DATABASE=hello_django_dev
-      - SQL_USER=hello_django
-      - SQL_PASSWORD=hello_django
-      - SQL_HOST=db
+      - SQL_DATABASE=$SQL_DATABASE
+      - SQL_USER=$SQL_USER
+      - SQL_PASSWORD=$SQL_PASSWORD
+      - SQL_HOST=$SQL_HOST
       - SQL_PORT=5432
-  db:
-    image: postgres:12.0-alpine
+
+  rabbitmq:
+    build:
+      context: ./rabbitmq
+      dockerfile: rabbitmq-local.Dockerfile
     ports:
-      - 5432:5432
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=django_admin
-      - POSTGRES_PASSWORD=hello_django
-      - POSTGRES_DB=hello_django_dev
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+      test: "curl -f --user guest:guest http://127.0.0.1:15672/api/healthchecks/node || false"
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
 volumes:
   postgres_data:

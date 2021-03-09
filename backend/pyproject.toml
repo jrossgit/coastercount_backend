@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "coasters-backend"
+name = "rabbitmq-django-backend"
 version = "0.1.0"
 description = ""
 authors = ["James Ross <james.i.ross5@gmail.com>"]
@@ -9,6 +9,10 @@ python = "^3.7"
 django = "^3.1.1"
 beautifulsoup4 = "^4.9.1"
 psycopg2 = "^2.8.6"
+uwsgi = "^2.0.19"
+djangorestframework = "^3.12.2"
+pika = "^1.2.0"
+requests = "^2.25.1"
 
 [tool.poetry.dev-dependencies]
 

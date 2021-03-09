@@ -16,6 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-urlpatterns = [
+from rest_framework import routers
+
+from app.views import TelemetryMessageViewSet
+
+
+router = routers.SimpleRouter()
+router.register(r'telemetry_message', TelemetryMessageViewSet)
+urlpatterns = router.urls
+urlpatterns.append(
     path('admin/', admin.site.urls),
-]
+)
